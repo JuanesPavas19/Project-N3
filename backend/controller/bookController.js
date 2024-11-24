@@ -10,7 +10,7 @@ dotenv.config()
 
 const getBooks = async (req, res) => {
   
-  if (process.env.NODE_ENV == 'production'){
+  if (process.env.NODE_ENV == 'development'){
     var client = new DynamoDBClient({ 
       region: process.env.AWS_REGION, 
     });
@@ -43,7 +43,7 @@ const getBooks = async (req, res) => {
 
 const getBooksById = async (req, res) => {
 
-  if (process.env.NODE_ENV == 'production'){
+  if (process.env.NODE_ENV == 'development'){
     var client = new DynamoDBClient({ 
       region: process.env.AWS_REGION, 
     });
