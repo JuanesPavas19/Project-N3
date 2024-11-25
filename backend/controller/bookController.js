@@ -1,72 +1,28 @@
+import Book from '../models/bookModel.js';
 
-
-import { fromEnv } from "@aws-sdk/credential-providers";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, ScanCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
-
-import dotenv from "dotenv";
- 
-dotenv.config()
-
-const getBooks = async (req, res) => {
-  
-  if (process.env.NODE_ENV == 'development'){
-    var client = new DynamoDBClient({ 
-      region: process.env.AWS_REGION, 
-    });
-  }else{
-    var client = new DynamoDBClient({ 
-      region: process.env.AWS_REGION, 
-      credentials: fromEnv() 
-    });
+// Obtener todos los libros
+export const getBooks = async (req, res) => {
+  try {
+    const books = await Book.find(); // Encuentra todos los documentos en la colección "books"
+    res.status(200).json(books); // Respuesta en formato JSON
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener los libros', error: error.message });
   }
-
-  const docClient = DynamoDBDocumentClient.from(client);
-  const command = new ScanCommand({
-    TableName: "tb_books",
-  });
-
-  const response = await docClient.send(command);
-
-  const books = [];
-  for (var i in response.Items) {
-    books.push(response.Items[i]);
-  }
-
-  res.contentType = 'application/json';
-  console.log(books);
-  res.json(books);
-
-  return res;
-
 };
 
-const getBooksById = async (req, res) => {
+// Obtener un libro por ID
+export const getBooksById = async (req, res) => {
+  const { id } = req.params; // Obtener el ID de los parámetros de la ruta
 
-  if (process.env.NODE_ENV == 'development'){
-    var client = new DynamoDBClient({ 
-      region: process.env.AWS_REGION, 
-    });
-  }else{
-    var client = new DynamoDBClient({ 
-      region: process.env.AWS_REGION, 
-      credentials: fromEnv() 
-    });
+  try {
+    const book = await Book.findById(id); // Buscar el libro por su ID
+
+    if (!book) {
+      return res.status(404).json({ message: 'Libro no encontrado' }); // Si no existe, responder con un 404
+    }
+
+    res.status(200).json(book); // Respuesta con el libro encontrado
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener el libro', error: error.message });
   }
-
-  const docClient = DynamoDBDocumentClient.from(client);
-
-  const command = new GetCommand({
-    TableName: "tb_books",
-    Key: {
-      id: req.params.id,
-    },
-  });
-
-  const response = await docClient.send(command);
-  console.log(response.Item);
-  res.json(response.Item)
-  return res;
 };
-
-export { getBooksById, getBooks }
